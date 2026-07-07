@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Auto-Embed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        #container {
+            width: 80%;
+            max-width: 800px;
+            text-align: center;
+        }
+        iframe {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .status {
+            font-size: 1.2rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="status" class="status">Wyszukiwanie filmu...</div>
+</div>
+
+<script>
+    // --- KONFIGURACJA ---
+    // Wklej tutaj swój klucz API z Google Cloud Console
+    const API_KEY = 'TWÓJ_KLUCZ_API_YOUTUBE'; 
+    // ---------------------
+
+    // 1. Pobranie parametru 'query' z adresu URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('query');
+
+    const statusElement = document.getElementById('status');
+    const container = document.getElementById('container');
+
+    if (searchQuery) {
+        // Dekodowanie frazy (np. "avi+red+bull" lub "avi%20red%20bull" -> "avi red bull")
+        const decodedQuery = decodeURIComponent(searchQuery);
+        fetchYouTubeVideo(decodedQuery);
+    } else {
+        statusElement.innerText = "Brak parametru ?query= w adresie URL. Przykład: ?query=avi red bull";
+    }
+
+    // 2. Funkcja strzelająca do YouTube API
+    async function fetchYouTubeVideo(query) {
+        // Budujemy URL do YouTube Search API (szukamy tylko filmów [type=video], max 1 wynik)
+        const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=YOUR_CX_ID_OR_USE_DATA_API`;
+        
+        // UWAGA: Standardowe YouTube Data API v3 wygląda tak:
+        const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${API_KEY}`;
+
+        try {
+            const response = await fetch(youtubeApiUrl);
+            const data = await response.json();
+
+            if (data.items && data.items.length > 0) {
+                const videoId = data.items[0].id.videoId;
+                displayIframe(videoId);
+            } else {
+                statusElement.innerText = "Nie znaleziono żadnego filmu dla frazy: " + query;
+            }
+        } catch (error) {
+            console.error("Błąd podczas pobierania danych z API:", error);
+            statusElement.innerText = "Wystąpił błąd podczas komunikacji z YouTube API.";
+        }
+    }
+
+    // 3. Funkcja generująca iframe na stronie
+    function displayIframe(videoId) {
+        // Czyszczenie statusu i wstrzyknięcie iframe
+        container.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        `;
+    }
+</script>
+
+</body>
+</html>
