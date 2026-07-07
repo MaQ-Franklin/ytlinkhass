@@ -5,31 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Auto-Embed</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        /* Usuwamy domyślne marginesy przeglądarki */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Ukrywa paski przewijania */
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
+            background-color: #000; /* Czarne tło (jak w kinie) */
         }
-        #container {
-            width: 80%;
-            max-width: 800px;
-            text-align: center;
-        }
+        
+        /* Iframe wypełnia cały kontener */
         iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            aspect-ratio: 16 / 9;
+            height: 100%;
             border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+
+        /* Styl dla komunikatu o błędzie (gdy brak ID) */
         .status {
+            font-family: Arial, sans-serif;
             font-size: 1.2rem;
-            color: #555;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
         }
     </style>
 </head>
@@ -47,10 +56,12 @@
     const container = document.getElementById('container');
 
     if (videoId) {
-        // 2. Jeśli videoId istnieje, generujemy iframe i podmieniamy zawartość kontenera
+        // 2. Jeśli videoId istnieje, generujemy iframe.
+        // Dodajemy parametry &autoplay=1 oraz &mute=1 do adresu URL.
+        // parametr "allow" również musi zawierać 'autoplay'.
         container.innerHTML = `
             <iframe 
-                src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}" 
+                src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
             </iframe>
