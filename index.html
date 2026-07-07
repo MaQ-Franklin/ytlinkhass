@@ -36,64 +36,28 @@
 <body>
 
 <div id="container">
-    <div id="status" class="status">Wyszukiwanie filmu...</div>
+    <div id="status" class="status">Ładowanie filmu...</div>
 </div>
 
 <script>
-    // --- KONFIGURACJA ---
-    // Wklej tutaj swój klucz API z Google Cloud Console
-    const API_KEY = 'AIzaSyCi4MwPXorBlyUlE7MLbvorEG6d_UxT2CM'; 
-    // ---------------------
-
     // 1. Pobranie parametru 'query' z adresu URL
     const urlParams = new URLSearchParams(window.location.search);
-    const searchQuery = urlParams.get('query');
+    const videoId = urlParams.get('query');
 
-    const statusElement = document.getElementById('status');
     const container = document.getElementById('container');
 
-    if (searchQuery) {
-        // Dekodowanie frazy (np. "avi+red+bull" lub "avi%20red%20bull" -> "avi red bull")
-        const decodedQuery = decodeURIComponent(searchQuery);
-        fetchYouTubeVideo(decodedQuery);
-    } else {
-        statusElement.innerText = "Brak parametru ?query= w adresie URL. Przykład: ?query=avi red bull";
-    }
-
-    // 2. Funkcja strzelająca do YouTube API
-    async function fetchYouTubeVideo(query) {
-        // Budujemy URL do YouTube Search API (szukamy tylko filmów [type=video], max 1 wynik)
-        const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=YOUR_CX_ID_OR_USE_DATA_API`;
-        
-        // UWAGA: Standardowe YouTube Data API v3 wygląda tak:
-        const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${API_KEY}`;
-
-        try {
-            const response = await fetch(youtubeApiUrl);
-            const data = await response.json();
-
-            if (data.items && data.items.length > 0) {
-                const videoId = data.items[0].id.videoId;
-                displayIframe(videoId);
-            } else {
-                statusElement.innerText = "Nie znaleziono żadnego filmu dla frazy: " + query;
-            }
-        } catch (error) {
-            console.error("Błąd podczas pobierania danych z API:", error);
-            statusElement.innerText = "Wystąpił błąd podczas komunikacji z YouTube API.";
-        }
-    }
-
-    // 3. Funkcja generująca iframe na stronie
-    function displayIframe(videoId) {
-        // Czyszczenie statusu i wstrzyknięcie iframe
+    if (videoId) {
+        // 2. Jeśli videoId istnieje, generujemy iframe i podmieniamy zawartość kontenera
         container.innerHTML = `
             <iframe 
-                src="https://www.youtube.com/embed/${videoId}" 
+                src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
             </iframe>
         `;
+    } else {
+        // Jeśli ktoś wejdzie na stronę bez parametru ?query=
+        document.getElementById('status').innerText = "Brak ID filmu w adresie URL. Przykład: ?query=d0l-4Dy_uKI";
     }
 </script>
 
